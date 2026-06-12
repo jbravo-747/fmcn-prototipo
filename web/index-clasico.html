@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FMCN · Priorización territorial de ANP federales</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<style>
+  :root{
+    --verde:#1b5e20; --verde-claro:#e8f5e9; --gris:#5f6368; --borde:#dadce0;
+    --fondo:#fafafa; --acento:#c62828;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; background:var(--fondo);}
+  header{background:var(--verde); color:#fff; padding:10px 18px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; z-index:10;}
+  header h1{font-size:17px; font-weight:600;}
+  header span{font-size:12px; opacity:.85;}
+  #contenedor{flex:1; display:flex; min-height:0;}
+  #panel{width:330px; min-width:280px; background:#fff; border-right:1px solid var(--borde); overflow-y:auto; padding:14px; font-size:13px;}
+  #mapa{flex:1; position:relative;}
+  h2{font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--verde); margin:14px 0 6px; border-bottom:1px solid var(--verde-claro); padding-bottom:3px;}
+  h2:first-child{margin-top:0;}
+  label{display:block; margin:4px 0; cursor:pointer; color:#202124;}
+  select{width:100%; padding:6px; border:1px solid var(--borde); border-radius:4px; font-size:13px; margin-top:4px;}
+  .slider-grupo{margin:10px 0;}
+  .slider-grupo .fila{display:flex; justify-content:space-between; font-size:12px; color:var(--gris);}
+  .slider-grupo input[type=range]{width:100%; accent-color:var(--verde);}
+  .peso{font-weight:700; color:var(--verde);}
+  table{width:100%; border-collapse:collapse; font-size:11.5px; margin-top:6px;}
+  th{text-align:left; color:var(--gris); font-weight:600; padding:3px 4px; border-bottom:1px solid var(--borde);}
+  td{padding:3px 4px; border-bottom:1px solid #f0f0f0;}
+  tr.fila-anp{cursor:pointer;}
+  tr.fila-anp:hover{background:var(--verde-claro);}
+  .score-chip{display:inline-block; min-width:34px; text-align:center; border-radius:10px; color:#fff; font-weight:700; padding:1px 6px;}
+  .nota{font-size:11px; color:var(--gris); background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:7px 8px; margin-top:10px; line-height:1.45;}
+  footer{background:#fff; border-top:1px solid var(--borde); padding:6px 16px; font-size:10.5px; color:var(--gris); line-height:1.5;}
+  footer a{color:var(--verde);}
+  #estado-carga{position:absolute; top:12px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid var(--borde); border-radius:20px; padding:6px 18px; font-size:12.5px; color:#202124; box-shadow:0 2px 8px rgba(0,0,0,.15); z-index:5;}
+  #estado-carga.error{background:#fdecea; border-color:var(--acento); color:var(--acento);}
+  .leyenda{position:absolute; bottom:26px; right:10px; background:#fff; border:1px solid var(--borde); border-radius:6px; padding:8px 10px; font-size:11px; z-index:5; box-shadow:0 1px 4px rgba(0,0,0,.12);}
+  .leyenda .barra{width:130px; height:10px; background:linear-gradient(to right,#ffffb2,#fd8d3c,#bd0026); border-radius:3px; margin:4px 0 2px;}
+  .leyenda .ext{display:flex; justify-content:space-between; color:var(--gris);}
+  .maplibregl-popup-content{font-family:inherit; font-size:12.5px; line-height:1.5; max-width:280px;}
+  .maplibregl-popup-content h3{font-size:13px; color:var(--verde); margin-bottom:4px;}
+  .maplibregl-popup-content .dato{color:var(--gris);}
+  #diag{font-size:10.5px; color:var(--gris); margin-top:8px;}
+  @media (max-width:760px){
+    #contenedor{flex-direction:column;}
+    #panel{width:100%; max-height:45%; border-right:none; border-bottom:1px solid var(--borde);}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Priorización territorial de ANP federales</h1>
+  <span>Prototipo FMCN · CONANP × CONAPO · datos oficiales</span>
+</header>
+<div id="contenedor">
+  <aside id="panel">
+    <h2>Capas</h2>
+    <label><input type="checkbox" id="capa-anp" checked> Áreas Naturales Protegidas (CONANP)</label>
+    <label><input type="checkbox" id="capa-marg"> Marginación municipal (CONAPO)</label>
+
+    <h2>Filtros</h2>
+    <div id="filtro-categorias"></div>
+    <select id="filtro-estado"><option value="">Todos los estados</option></select>
+
+    <h2>Índice de priorización</h2>
+    <div class="slider-grupo">
+      <div class="fila"><span>Presión socioeconómica (marginación)</span><span class="peso" id="v-w1">50</span></div>
+      <input type="range" id="w1" min="0" max="100" value="50">
+    </div>
+    <div class="slider-grupo">
+      <div class="fila"><span>Superficie del ANP</span><span class="peso" id="v-w2">30</span></div>
+      <input type="range" id="w2" min="0" max="100" value="30">
+    </div>
+    <div class="slider-grupo">
+      <div class="fila"><span>Presencia territorial (municipios)</span><span class="peso" id="v-w3">20</span></div>
+      <input type="range" id="w3" min="0" max="100" value="20">
+    </div>
+
+    <h2>Top 10 ANP prioritarias</h2>
+    <table id="tabla-top">
+      <thead><tr><th>#</th><th>ANP</th><th>Score</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="nota"><strong>Nota:</strong> pesos ilustrativos y ajustables; la herramienta soporta la decisión, no la sustituye. Las ANP sin municipio asociado (marinas) no tienen presión socioeconómica terrestre medible: ese criterio cuenta como 0. Si baja su peso, esas ANP suben en el ranking.</div>
+    <div id="diag"></div>
+  </aside>
+  <div id="mapa">
+    <div id="estado-carga">Cargando capas oficiales…</div>
+    <div class="leyenda">
+      <strong>Índice de priorización</strong>
+      <div class="barra"></div>
+      <div class="ext"><span>0</span><span>100</span></div>
+    </div>
+  </div>
+</div>
+<footer>
+  Fuentes: <a href="https://sig.conanp.gob.mx/" target="_blank">CONANP</a> — ANP federales (capa de servicio 2020; cifra oficial vigente: 232 ANP, <a href="https://simec.conanp.gob.mx/numeralia/Tablas_Numeralia.pdf" target="_blank">Numeralia SIMEC</a>) ·
+  <a href="https://www.gob.mx/conapo" target="_blank">CONAPO</a> — Índice de marginación municipal ·
+  Mapa base © <a href="https://carto.com/" target="_blank">CARTO</a> / © OpenStreetMap. Consulta: junio 2026. Prototipo de evaluación — no es un producto oficial de FMCN. · Desarrollado por <strong>Joel Bravo</strong>.
+</footer>
+
+<script>
+"use strict";
+/* ================= Configuración ================= */
+const SRV_ANP  = "https://rmgir.proyectomesoamerica.org/server/rest/services/Aplicativos/SEDATU_TABASCO/MapServer/47";
+const SRV_MARG = "https://rmgir.proyectomesoamerica.org/server/rest/services/ANR/Indicadores/MapServer/5";
+const SRV_MARG_EXPORT = "https://rmgir.proyectomesoamerica.org/server/rest/services/ANR/Indicadores/MapServer/export";
+
+const CATEGORIAS = {
+  "RB":"Reserva de la Biosfera","PN":"Parque Nacional","APFF":"Área de Protección de Flora y Fauna",
+  "APRN":"Área de Protección de Recursos Naturales","MN":"Monumento Natural","SANT":"Santuario","S":"Santuario"
+};
+const GRADOS = {"Muy bajo":1,"Bajo":2,"Medio":3,"Alto":4,"Muy alto":5};
+
+/* ================= Utilidades ================= */
+// Normaliza nombres: minúsculas, sin acentos, solo a-z (tolera errores de codificación del servicio, p.ej. "Villa de -lvarez")
+const norm = s => (s||"").toLowerCase().normalize("NFD").replace(new RegExp("[\\u0300-\\u036f]","g"),"").replace(/[^a-z]/g,"");
+// Canonicaliza nombres de estado. CONAPO usa nombres largos oficiales ("Coahuila de
+// Zaragoza", "Distrito Federal", "Michoacán de Ocampo", "México", "Querétaro de Arteaga")
+// que no coinciden con el campo ESTADOS de las ANP ("Coahuila", "Ciudad de México",
+// "Michoacán", "Estado de México", "Querétaro") tras normalizar. Mapea ambos lados a un token común.
+const ALIAS_EDO = {
+  coahuila:"coah", coahuiladezaragoza:"coah",
+  ciudaddemexico:"cdmx", distritofederal:"cdmx", cdmx:"cdmx", df:"cdmx",
+  michoacan:"mich", michoacandeocampo:"mich",
+  mexico:"mex", estadodemexico:"mex", edomex:"mex", edodemex:"mex",
+  queretaro:"qro", queretarodearteaga:"qro",
+  veracruz:"ver", veracruzdeignaciodelallave:"ver",
+  nuevoleon:"nl", nl:"nl",
+  sanluispotosi:"slp", slp:"slp"
+};
+const normEdo = s => { const k = norm(s); return ALIAS_EDO[k] || k; };
+// Lista de municipios: separadores ",", " y " y " e " (Spanish: "Lázaro Cárdenas e Isla Mujeres")
+const splitMunis = s => (s||"").split(/,| y | e /).map(x=>x.trim()).filter(Boolean);
+const fmt = n => n==null ? "s/d" : n.toLocaleString("es-MX",{maximumFractionDigits:0});
+
+async function fetchJSON(url){ const r = await fetch(url); if(!r.ok) throw new Error("HTTP "+r.status+" — "+url); return r.json(); }
+
+// Carga paginada de un layer ArcGIS REST
+async function cargarPaginado(base, params, formato, tamPagina){
+  let offset = 0, out = [];
+  for(let i=0;i<60;i++){
+    const u = `${base}/query?${params}&resultOffset=${offset}&f=${formato}`;
+    const j = await fetchJSON(u);
+    const feats = j.features || [];
+    out = out.concat(feats);
+    const flag = j.exceededTransferLimit || (j.properties && j.properties.exceededTransferLimit);
+    // Continuar si el servicio lo indica O si la página vino llena (algunas versiones omiten el flag en f=geojson)
+    if(!feats.length || (!flag && feats.length < tamPagina)) break;
+    offset += feats.length;
+  }
+  return out;
+}
+
+/* ================= Carga de datos ================= */
+const estadoCarga = document.getElementById("estado-carga");
+let ANP = null;            // GeoJSON FeatureCollection
+let margPorANP = {};       // id -> {im, grado, n, matched}
+let diag = {munis:0, anps:0, conMarg:0};
+
+async function cargarDatos(){
+  // 1) Intentar copias locales (generadas por scripts/snapshot_servicios.py); 2) servicio en vivo
+  let anpGeo, munis;
+  try{
+    anpGeo = await fetchJSON("data/anp.geojson");
+    munis  = await fetchJSON("data/marginacion_municipal.json");
+    estadoCarga.textContent = "Datos locales cargados…";
+  }catch(e){
+    estadoCarga.textContent = "Descargando capas del servicio oficial…";
+    const featsANP = await cargarPaginado(SRV_ANP,
+      "where=1%3D1&outFields=ID_ANP,NOMBRE,CAT_MANEJO,ESTADOS,MUNICIPIOS,REGION,SUPERFICIE,S_TERRES,S_MARINA,PRIM_DEC&returnGeometry=true&outSR=4326&geometryPrecision=4&maxAllowableOffset=0.005&resultRecordCount=50","geojson",50);
+    anpGeo = {type:"FeatureCollection", features:featsANP};
+    const featsM = await cargarPaginado(SRV_MARG,
+      "where=1%3D1&outFields=CVE_MUN,NOM_ENT,NOM_MUN,IM_2010,GM_2010,POB_TOT&returnGeometry=false&resultRecordCount=1000","json",1000);
+    munis = featsM.map(f=>f.attributes);
+  }
+  diag.munis = munis.length;
+  diag.anps = anpGeo.features.length;
+
+  // Índice (estado, municipio) -> IM
+  const idx = {};
+  munis.forEach(m=>{ idx[normEdo(m.NOM_ENT)+"|"+norm(m.NOM_MUN)] = m; });
+  const porEstado = {};
+  munis.forEach(m=>{ (porEstado[normEdo(m.NOM_ENT)] = porEstado[normEdo(m.NOM_ENT)]||[]).push(m); });
+
+  // Cruce por nombre: "Estado: Mun1, Mun2 y Mun3; Estado2: …"
+  anpGeo.features.forEach((f,i)=>{
+    f.id = i;
+    const p = f.properties;
+    const res = {im:null, grado:null, n:0, total:0};
+    const txt = p.MUNICIPIOS || "";
+    if(txt && txt.includes(":")){
+      let suma=0;
+      txt.split(";").forEach(seg=>{
+        const [edo, lista] = seg.split(":");
+        if(!lista) return;
+        const edoN = normEdo(edo);
+        splitMunis(lista).forEach(mun=>{
+          res.total++;
+          let m = idx[edoN+"|"+norm(mun)];
+          if(!m && porEstado[edoN]) m = porEstado[edoN].find(x=>norm(x.NOM_MUN)===norm(mun));
+          if(m && m.IM_2010!=null){ suma+=m.IM_2010; res.n++; }
+        });
+      });
+      if(res.n>0) res.im = suma/res.n;
+    } else if(txt){
+      // ANP en un solo estado: "Mun1, Mun2 y Mun3"
+      const edoN = normEdo(p.ESTADOS);
+      let suma=0;
+      splitMunis(txt).forEach(mun=>{
+        res.total++;
+        const m = (porEstado[edoN]||[]).find(x=>norm(x.NOM_MUN)===norm(mun));
+        if(m && m.IM_2010!=null){ suma+=m.IM_2010; res.n++; }
+      });
+      if(res.n>0) res.im = suma/res.n;
+    }
+    if(res.im!=null){
+      res.grado = res.im>=1 ? "Muy alto" : res.im>=0.25 ? "Alto" : res.im>=-0.5 ? "Medio" : res.im>=-1.25 ? "Bajo" : "Muy bajo";
+      diag.conMarg++;
+    }
+    margPorANP[i]=res;
+    p._nMunis = res.total;
+  });
+  ANP = anpGeo;
+  document.getElementById("diag").textContent =
+    `Diagnóstico: ${diag.anps} ANP cargadas · ${diag.munis} municipios CONAPO · cruce socioeconómico resuelto en ${diag.conMarg} ANP (las restantes son marinas o sin municipio identificable).`;
+}
+
+/* ================= Índice de priorización ================= */
+function calcularScores(){
+  if(!ANP) return [];
+  const feats = ANP.features;
+  // Normalización 0–1 por criterio
+  const ims = feats.map(f=>margPorANP[f.id].im).filter(v=>v!=null);
+  const imMin = Math.min(...ims), imMax = Math.max(...ims);
+  const sups = feats.map(f=>Math.log10((f.properties.SUPERFICIE||1)+1));
+  const sMin = Math.min(...sups), sMax = Math.max(...sups);
+  const ns = feats.map(f=>f.properties._nMunis||0);
+  const nMax = Math.max(...ns,1);
+
+  const w1=+document.getElementById("w1").value,
+        w2=+document.getElementById("w2").value,
+        w3=+document.getElementById("w3").value;
+
+  const filas=[];
+  feats.forEach((f,k)=>{
+    const m = margPorANP[f.id];
+    const c1 = m.im!=null ? (m.im-imMin)/((imMax-imMin)||1) : null;       // marginación: mayor = más presión
+    const c2 = (sups[k]-sMin)/((sMax-sMin)||1);                            // superficie (log)
+    const c3 = (f.properties._nMunis||0)/nMax;                             // presencia territorial
+    // Sin cruce socioeconómico (ANP marina/sin municipio): el pilar de marginación
+    // aporta 0 pero conserva su peso en el denominador, para no inflar a las marinas
+    // por renormalización. Si el usuario baja el peso de marginación, suben solas.
+    let num=0, den=0;
+    num+=w1*(c1!=null?c1:0); den+=w1;
+    num+=w2*c2; den+=w2;
+    num+=w3*c3; den+=w3;
+    const score = den>0 ? Math.round(100*num/den) : 0;
+    f.properties._score = score;
+    filas.push({id:f.id, nombre:f.properties.NOMBRE, score, f});
+  });
+  return filas.sort((a,b)=>b.score-a.score);
+}
+
+const colorScore = s => s>=66 ? "#bd0026" : s>=50 ? "#f03b20" : s>=33 ? "#fd8d3c" : s>=16 ? "#fecc5c" : "#ffffb2";
+
+function actualizarIndice(){
+  ["w1","w2","w3"].forEach(w=>document.getElementById("v-"+w).textContent=document.getElementById(w).value);
+  const filas = calcularScores();
+  // Recolorear vía feature-state
+  filas.forEach(r=> map.setFeatureState({source:"anp", id:r.id},{score:r.score}));
+  // Tabla Top 10
+  const tb = document.querySelector("#tabla-top tbody");
+  tb.innerHTML="";
+  filas.slice(0,10).forEach((r,i)=>{
+    const tr=document.createElement("tr");
+    tr.className="fila-anp";
+    tr.innerHTML=`<td>${i+1}</td><td>${r.nombre}</td><td><span class="score-chip" style="background:${colorScore(r.score)}">${r.score}</span></td>`;
+    tr.onclick=()=>{ const bb=bboxDe(r.f); if(bb) map.fitBounds(bb,{padding:60, maxZoom:9}); };
+    tb.appendChild(tr);
+  });
+}
+
+function bboxDe(f){
+  let minX=180,minY=90,maxX=-180,maxY=-90, ok=false;
+  const rec = c=>{ if(typeof c[0]==="number"){ ok=true; if(c[0]<minX)minX=c[0]; if(c[0]>maxX)maxX=c[0]; if(c[1]<minY)minY=c[1]; if(c[1]>maxY)maxY=c[1]; } else c.forEach(rec); };
+  if(f.geometry) rec(f.geometry.coordinates);
+  return ok ? [[minX,minY],[maxX,maxY]] : null;
+}
+
+/* ================= Mapa ================= */
+const map = new maplibregl.Map({
+  container:"mapa",
+  style:{
+    version:8,
+    sources:{
+      carto:{type:"raster", tiles:["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png","https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"], tileSize:256, attribution:"© CARTO © OpenStreetMap"}
+    },
+    layers:[{id:"carto", type:"raster", source:"carto"}]
+  },
+  center:[-102.2,23.8], zoom:4.4, attributionControl:false
+});
+map.addControl(new maplibregl.NavigationControl(),"top-right");
+map.addControl(new maplibregl.AttributionControl({compact:true}));
+
+map.on("load", async ()=>{
+  try{
+    await cargarDatos();
+  }catch(e){
+    estadoCarga.classList.add("error");
+    estadoCarga.textContent = "No fue posible cargar los servicios de datos. Ejecuta scripts/snapshot_servicios.py para generar copias locales. ("+e.message+")";
+    return;
+  }
+  // Capa raster de marginación (export dinámico del MapServer)
+  map.addSource("marg",{type:"raster", tiles:[SRV_MARG_EXPORT+"?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&dpi=96&format=png32&transparent=true&layers=show:5&f=image"], tileSize:256});
+  map.addLayer({id:"marg", type:"raster", source:"marg", paint:{"raster-opacity":0.55}, layout:{visibility:"none"}});
+
+  map.addSource("anp",{type:"geojson", data:ANP});
+  map.addLayer({id:"anp-fill", type:"fill", source:"anp",
+    paint:{"fill-color":["case",["!=",["feature-state","score"],null],
+      ["interpolate",["linear"],["feature-state","score"],0,"#ffffb2",25,"#fecc5c",50,"#fd8d3c",75,"#f03b20",100,"#bd0026"],
+      "#74a374"],
+      "fill-opacity":0.62}});
+  map.addLayer({id:"anp-line", type:"line", source:"anp", paint:{"line-color":"#1b5e20","line-width":0.8}});
+
+  // Popup
+  map.on("click","anp-fill",e=>{
+    const f=e.features[0], p=f.properties, m=margPorANP[f.id]||{};
+    const anio = p.PRIM_DEC ? new Date(+p.PRIM_DEC).getFullYear() : null;
+    // El score vive en feature-state (se actualiza con los sliders), no en las props del source
+    const st = map.getFeatureState({source:"anp", id:f.id});
+    const score = st && st.score!=null ? st.score : null;
+    new maplibregl.Popup().setLngLat(e.lngLat).setHTML(
+      `<h3>${p.NOMBRE}</h3>
+       <div><span class="dato">Categoría:</span> ${CATEGORIAS[p.CAT_MANEJO]||p.CAT_MANEJO}</div>
+       <div><span class="dato">Superficie:</span> ${fmt(p.SUPERFICIE)} ha</div>
+       <div><span class="dato">Estados:</span> ${p.ESTADOS||"s/d"}</div>
+       ${anio?`<div><span class="dato">Primer decreto:</span> ${anio}</div>`:""}
+       <div><span class="dato">Marginación promedio:</span> ${m.grado||"s/d (ANP marina o sin cruce)"} ${m.im!=null?`(IM ${m.im.toFixed(2)}, ${m.n} municipios)`:""}</div>
+       <div><span class="dato">Índice de priorización:</span> <strong>${score!=null?score:"—"}</strong>/100</div>`
+    ).addTo(map);
+  });
+  map.on("mouseenter","anp-fill",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","anp-fill",()=>map.getCanvas().style.cursor="");
+
+  construirFiltros();
+  actualizarIndice();
+  estadoCarga.style.display="none";
+});
+
+/* ================= Filtros y controles ================= */
+function construirFiltros(){
+  const cats={}, edos=new Set();
+  ANP.features.forEach(f=>{
+    cats[f.properties.CAT_MANEJO]=(cats[f.properties.CAT_MANEJO]||0)+1;
+    (f.properties.ESTADOS||"").split(/,| y /).map(s=>s.trim()).filter(s=>s&&s.length>2).forEach(e=>edos.add(e));
+  });
+  const cont=document.getElementById("filtro-categorias");
+  Object.keys(cats).sort().forEach(c=>{
+    const l=document.createElement("label");
+    l.innerHTML=`<input type="checkbox" class="f-cat" value="${c}" checked> ${CATEGORIAS[c]||c} (${cats[c]})`;
+    cont.appendChild(l);
+  });
+  const sel=document.getElementById("filtro-estado");
+  [...edos].sort((a,b)=>a.localeCompare(b,"es")).forEach(e=>{
+    const o=document.createElement("option"); o.value=e; o.textContent=e; sel.appendChild(o);
+  });
+  document.querySelectorAll(".f-cat").forEach(ch=>ch.onchange=aplicarFiltros);
+  sel.onchange=aplicarFiltros;
+}
+
+function aplicarFiltros(){
+  const activas=[...document.querySelectorAll(".f-cat:checked")].map(c=>c.value);
+  const edo=document.getElementById("filtro-estado").value;
+  const filtro=["all",["in",["get","CAT_MANEJO"],["literal",activas]]];
+  if(edo) filtro.push(["in",edo,["get","ESTADOS"]]);
+  map.setFilter("anp-fill",filtro);
+  map.setFilter("anp-line",filtro);
+}
+
+document.getElementById("capa-anp").onchange=e=>{
+  const v=e.target.checked?"visible":"none";
+  if(map.getLayer("anp-fill")){ map.setLayoutProperty("anp-fill","visibility",v); map.setLayoutProperty("anp-line","visibility",v); }
+};
+document.getElementById("capa-marg").onchange=e=>{
+  if(map.getLayer("marg")) map.setLayoutProperty("marg","visibility",e.target.checked?"visible":"none");
+};
+["w1","w2","w3"].forEach(w=>document.getElementById(w).oninput=actualizarIndice);
+</script>
+</body>
+</html>

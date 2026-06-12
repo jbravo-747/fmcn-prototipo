@@ -3,101 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FMCN · Priorización territorial de ANP federales</title>
+<title>Plataforma Territorial FMCN</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
 <style>
   :root{
-    --verde:#1b5e20; --verde-claro:#e8f5e9; --gris:#5f6368; --borde:#dadce0;
-    --fondo:#fafafa; --acento:#c62828;
+    --teal:#0e7569; --teal-osc:#0a5a50; --teal-claro:#bff0e8; --teal-tinte:#e6f5f2;
+    --tinta:#1f2937; --gris:#6b7280; --gris-claro:#9ca3af;
+    --panel:#f0f1f2; --blanco:#ffffff; --borde:#e5e7eb;
+    --sombra:0 1px 3px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.10);
+    --radio:12px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; background:var(--fondo);}
-  header{background:var(--verde); color:#fff; padding:10px 18px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; z-index:10;}
-  header h1{font-size:17px; font-weight:600;}
-  header span{font-size:12px; opacity:.85;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif; height:100vh; display:flex; flex-direction:column; overflow:hidden; background:var(--blanco); color:var(--tinta);}
+
+  /* ---- Barra superior ---- */
+  header{background:var(--blanco); border-bottom:1px solid var(--borde); padding:12px 20px; display:flex; align-items:center; gap:10px; z-index:20;}
+  header .logo{display:flex; align-items:center; gap:8px; font-size:17px; font-weight:700; color:var(--tinta);}
+  header .logo svg{color:var(--teal);}
+  header .derecha{margin-left:auto; display:flex; align-items:center; gap:14px;}
+  .pildora{background:var(--teal-claro); color:var(--teal-osc); font-size:11.5px; font-weight:600; padding:4px 12px; border-radius:999px; display:flex; align-items:center; gap:6px;}
+  .pildora::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulso 2.4s ease-in-out infinite;}
+  @keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(14,117,105,.45);}50%{box-shadow:0 0 0 5px rgba(14,117,105,0);}}
+
+  /* ---- Entrada escalonada (fade-in-up) ---- */
+  @keyframes aparecer{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+  #panel > *{animation:aparecer .45s ease-out backwards;}
+  #panel > *:nth-child(1){animation-delay:.05s;} #panel > *:nth-child(2){animation-delay:.08s;}
+  #panel > *:nth-child(3){animation-delay:.12s;} #panel > *:nth-child(4){animation-delay:.16s;}
+  #panel > *:nth-child(5){animation-delay:.20s;} #panel > *:nth-child(6){animation-delay:.24s;}
+  #panel > *:nth-child(7){animation-delay:.28s;} #panel > *:nth-child(8){animation-delay:.32s;}
+  #panel > *:nth-child(9){animation-delay:.36s;} #panel > *:nth-child(10){animation-delay:.40s;}
+  #panel > *:nth-child(n+11){animation-delay:.44s;}
+  #tarjeta-top{animation:aparecer .5s .55s ease-out backwards;}
+  #tarjeta-leyenda{animation:aparecer .5s .65s ease-out backwards;}
+  header .logo, header .tabs, header .derecha{animation:aparecer .4s ease-out backwards;}
+  header .tabs{animation-delay:.08s;} header .derecha{animation-delay:.15s;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+
+  /* ---- Micro-interacciones ---- */
+  select{transition:border-color .15s, box-shadow .15s;}
+  select:hover{border-color:var(--teal);}
+  select:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(14,117,105,.15);}
+  label.capa input{transition:transform .12s;}
+  label.capa:hover input{transform:scale(1.12);}
+  input[type=range]::-webkit-slider-thumb{transition:transform .12s, box-shadow .12s;}
+  input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.15); box-shadow:0 0 0 4px rgba(14,117,105,.15);}
+  .btn-exportar{transition:background .15s, transform .1s;}
+  .btn-exportar:active{transform:scale(.98);}
+  .tab{transition:background .15s, color .15s;}
+  #tarjeta-top tr{transition:background .12s;}
+  .tabs{display:flex; gap:4px; margin-left:24px;}
+  .tab{border:none; background:none; font-family:inherit; font-size:13px; font-weight:600; color:var(--gris); padding:7px 14px; border-radius:999px; cursor:pointer;}
+  .tab:hover{background:var(--teal-tinte); color:var(--teal-osc);}
+  .tab.activa{background:var(--teal-claro); color:var(--teal-osc);}
+  #metodologia-v{display:none; flex:1; overflow-y:auto; background:var(--blanco); padding:28px 36px; font-size:13.5px; line-height:1.7; max-width:100%;}
+  #metodologia-v .cuerpo{max-width:780px; margin:0 auto;}
+  #metodologia-v h2{font-size:16px; color:var(--teal-osc); margin:22px 0 8px;}
+  #metodologia-v h2:first-child{margin-top:0;}
+  #metodologia-v p{margin-bottom:10px; color:var(--tinta);}
+  #metodologia-v .formula{background:var(--panel); border-radius:10px; padding:12px 16px; font-family:Consolas,monospace; font-size:12.5px; margin:10px 0; overflow-x:auto;}
+  #metodologia-v table{width:100%; border-collapse:collapse; font-size:12.5px; margin:10px 0;}
+  #metodologia-v th{text-align:left; color:var(--gris); font-weight:600; padding:6px 8px; border-bottom:2px solid var(--borde);}
+  #metodologia-v td{padding:6px 8px; border-bottom:1px solid #f3f4f6; vertical-align:top;}
+  #metodologia-v .aviso{background:#fff8e1; border:1px solid #ffe082; border-radius:10px; padding:10px 14px; font-size:12.5px; margin:12px 0;}
+
   #contenedor{flex:1; display:flex; min-height:0;}
-  #panel{width:330px; min-width:280px; background:#fff; border-right:1px solid var(--borde); overflow-y:auto; padding:14px; font-size:13px;}
+
+  /* ---- Panel lateral ---- */
+  #panel{width:300px; min-width:260px; background:var(--panel); overflow-y:auto; padding:18px 16px 16px; font-size:13px; display:flex; flex-direction:column;}
+  .kicker{font-size:11px; font-weight:700; letter-spacing:.8px; color:var(--tinta); text-transform:uppercase;}
+  .subkicker{font-size:11px; color:var(--gris); margin-bottom:14px;}
+  .seccion{display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; letter-spacing:.6px; color:var(--teal); text-transform:uppercase; margin:16px 0 10px;}
+  label.capa{display:flex; align-items:center; justify-content:space-between; margin:8px 0; cursor:pointer; font-size:12.5px;}
+  label.capa input{accent-color:var(--teal); width:15px; height:15px; cursor:pointer;}
+  .campo{font-size:11.5px; color:var(--gris); margin:10px 0 4px;}
+  select{width:100%; padding:8px 10px; border:1px solid var(--borde); border-radius:999px; font-size:12.5px; background:var(--blanco); color:var(--tinta); appearance:auto; cursor:pointer;}
+  .slider-grupo{margin:12px 0;}
+  .slider-grupo .fila{display:flex; justify-content:space-between; font-size:12px; margin-bottom:2px;}
+  .slider-grupo .fila .val{font-weight:700; color:var(--teal);}
+  input[type=range]{width:100%; accent-color:var(--teal); cursor:pointer;}
+  .pesos-nota{font-size:11px; font-style:italic; color:var(--gris-claro); text-align:center; margin:8px 0 14px;}
+  .btn-exportar{margin-top:auto; background:var(--teal); color:#fff; border:none; border-radius:10px; padding:11px; font-size:13.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:var(--sombra);}
+  .btn-exportar:hover{background:var(--teal-osc);}
+  #diag{font-size:10.5px; color:var(--gris-claro); margin-top:10px; line-height:1.4;}
+
+  /* ---- Mapa y tarjetas flotantes ---- */
   #mapa{flex:1; position:relative;}
-  h2{font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--verde); margin:14px 0 6px; border-bottom:1px solid var(--verde-claro); padding-bottom:3px;}
-  h2:first-child{margin-top:0;}
-  label{display:block; margin:4px 0; cursor:pointer; color:#202124;}
-  select{width:100%; padding:6px; border:1px solid var(--borde); border-radius:4px; font-size:13px; margin-top:4px;}
-  .slider-grupo{margin:10px 0;}
-  .slider-grupo .fila{display:flex; justify-content:space-between; font-size:12px; color:var(--gris);}
-  .slider-grupo input[type=range]{width:100%; accent-color:var(--verde);}
-  .peso{font-weight:700; color:var(--verde);}
-  table{width:100%; border-collapse:collapse; font-size:11.5px; margin-top:6px;}
-  th{text-align:left; color:var(--gris); font-weight:600; padding:3px 4px; border-bottom:1px solid var(--borde);}
-  td{padding:3px 4px; border-bottom:1px solid #f0f0f0;}
-  tr.fila-anp{cursor:pointer;}
-  tr.fila-anp:hover{background:var(--verde-claro);}
-  .score-chip{display:inline-block; min-width:34px; text-align:center; border-radius:10px; color:#fff; font-weight:700; padding:1px 6px;}
-  .nota{font-size:11px; color:var(--gris); background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:7px 8px; margin-top:10px; line-height:1.45;}
-  footer{background:#fff; border-top:1px solid var(--borde); padding:6px 16px; font-size:10.5px; color:var(--gris); line-height:1.5;}
-  footer a{color:var(--verde);}
-  #estado-carga{position:absolute; top:12px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid var(--borde); border-radius:20px; padding:6px 18px; font-size:12.5px; color:#202124; box-shadow:0 2px 8px rgba(0,0,0,.15); z-index:5;}
-  #estado-carga.error{background:#fdecea; border-color:var(--acento); color:var(--acento);}
-  .leyenda{position:absolute; bottom:26px; right:10px; background:#fff; border:1px solid var(--borde); border-radius:6px; padding:8px 10px; font-size:11px; z-index:5; box-shadow:0 1px 4px rgba(0,0,0,.12);}
-  .leyenda .barra{width:130px; height:10px; background:linear-gradient(to right,#ffffb2,#fd8d3c,#bd0026); border-radius:3px; margin:4px 0 2px;}
-  .leyenda .ext{display:flex; justify-content:space-between; color:var(--gris);}
-  .maplibregl-popup-content{font-family:inherit; font-size:12.5px; line-height:1.5; max-width:280px;}
-  .maplibregl-popup-content h3{font-size:13px; color:var(--verde); margin-bottom:4px;}
+  .tarjeta{position:absolute; background:var(--blanco); border-radius:var(--radio); box-shadow:var(--sombra); z-index:5;}
+  #tarjeta-top{bottom:18px; right:14px; width:250px; overflow:hidden;}
+  #tarjeta-top .cabeza{background:var(--teal-claro); color:var(--teal-osc); font-size:12.5px; font-weight:700; padding:9px 12px; display:flex; align-items:center; gap:6px;}
+  #tarjeta-top table{width:100%; border-collapse:collapse; font-size:12px;}
+  #tarjeta-top td{padding:6px 12px; border-bottom:1px solid #f3f4f6;}
+  #tarjeta-top tr:last-child td{border-bottom:none;}
+  #tarjeta-top tr{cursor:pointer;}
+  #tarjeta-top tr:hover{background:var(--teal-tinte);}
+  #tarjeta-top .num{color:var(--gris-claro); font-weight:600; width:24px;}
+  #tarjeta-top .nom{max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .chip{display:inline-block; min-width:34px; text-align:center; border-radius:999px; color:#fff; font-weight:700; font-size:11px; padding:2px 7px; float:right;}
+  #tarjeta-leyenda{bottom:18px; left:14px; padding:10px 14px; font-size:11px;}
+  #tarjeta-leyenda .titulo{font-weight:700; font-size:11.5px; margin-bottom:5px;}
+  #tarjeta-leyenda .barra{width:150px; height:9px; background:linear-gradient(to right,#ffffb2,#fecc5c,#fd8d3c,#f03b20,#bd0026); border-radius:5px; margin-bottom:3px;}
+  #tarjeta-leyenda .ext{display:flex; justify-content:space-between; color:var(--gris); letter-spacing:.5px; font-size:10px;}
+  #estado-carga{position:absolute; top:14px; left:50%; transform:translateX(-50%); background:var(--blanco); border-radius:999px; padding:7px 18px; font-size:12.5px; box-shadow:var(--sombra); z-index:6;}
+  #estado-carga.error{background:#fdecea; color:#b3261e;}
+
+  footer{background:var(--blanco); border-top:1px solid var(--borde); padding:6px 18px; font-size:10.5px; color:var(--gris); line-height:1.5;}
+  footer a{color:var(--teal);}
+
+  .maplibregl-popup-content{font-family:inherit; font-size:12.5px; line-height:1.55; max-width:280px; border-radius:10px; box-shadow:var(--sombra);}
+  .maplibregl-popup-content h3{font-size:13px; color:var(--teal-osc); margin-bottom:4px;}
   .maplibregl-popup-content .dato{color:var(--gris);}
-  #diag{font-size:10.5px; color:var(--gris); margin-top:8px;}
+  .maplibregl-ctrl-group{border-radius:10px !important; box-shadow:var(--sombra) !important;}
+
   @media (max-width:760px){
     #contenedor{flex-direction:column;}
-    #panel{width:100%; max-height:45%; border-right:none; border-bottom:1px solid var(--borde);}
+    #panel{width:100%; max-height:46%; min-width:0;}
+    #tarjeta-top{width:210px;}
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>Priorización territorial de ANP federales</h1>
-  <span>Prototipo FMCN · CONANP × CONAPO · datos oficiales</span>
+  <div class="logo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+    Plataforma Territorial FMCN
+  </div>
+  <nav class="tabs">
+    <button class="tab activa" data-vista="mapa-v">Mapa</button>
+    <button class="tab" data-vista="metodologia-v">Metodología</button>
+  </nav>
+  <div class="derecha"><span class="pildora" title="Capas oficiales cargadas. Datos a fecha de corte — ver Metodología.">Sistema Activo</span></div>
 </header>
-<div id="contenedor">
-  <aside id="panel">
-    <h2>Capas</h2>
-    <label><input type="checkbox" id="capa-anp" checked> Áreas Naturales Protegidas (CONANP)</label>
-    <label><input type="checkbox" id="capa-marg"> Marginación municipal (CONAPO)</label>
 
-    <h2>Filtros</h2>
-    <div id="filtro-categorias"></div>
-    <select id="filtro-estado"><option value="">Todos los estados</option></select>
+<section id="metodologia-v">
+  <div class="cuerpo">
+    <h2>Propósito</h2>
+    <p>Apoyar la priorización de inversión territorial del FMCN y la rendición de cuentas a donantes, cruzando las Áreas Naturales Protegidas (ANP) federales con el contexto socioeconómico que presiona su conservación. La herramienta <strong>soporta</strong> la decisión; no la sustituye.</p>
+
+    <h2>Fuentes de datos</h2>
+    <table>
+      <tr><th>Capa</th><th>Fuente</th><th>Versión</th><th>Nota</th></tr>
+      <tr><td>ANP federales (polígonos y atributos)</td><td>CONANP, vía servicio REST del Atlas Nacional de Riesgos (CENAPRED)</td><td>2020 — 182 ANP</td><td>La cifra oficial vigente es <strong>232 ANP</strong> (Numeralia SIMEC, consulta jun-2026); la versión institucional procesa el shapefile de sept-2024 con el pipeline reproducible del proyecto</td></tr>
+      <tr><td>Índice de marginación municipal</td><td>CONAPO, vía el mismo servicio</td><td>2010 (IM/GM)</td><td>El pipeline institucional usa el CSV CONAPO 2020 con clave CVEGEO</td></tr>
+      <tr><td>Mapa base</td><td>CARTO Voyager / OpenStreetMap</td><td>—</td><td>Tiles gratuitos</td></tr>
+    </table>
+
+    <h2>Cruce ANP × municipios</h2>
+    <p>En este prototipo el cruce es <strong>por nombre</strong>: se interpreta el campo MUNICIPIOS de cada ANP ("Estado: Mun1, Mun2 y Mun3; …"), se normalizan cadenas (minúsculas, sin acentos ni signos, tolerante a errores de codificación de la fuente) y se busca cada municipio dentro de su estado en la tabla de CONAPO. La marginación promedio de la ANP es la media del índice de marginación (IM) de sus municipios con cruce logrado. El número de cruces resueltos se reporta en el panel. La versión institucional sustituye esta aproximación por un <em>join espacial exacto</em> (intersección de polígonos) con geopandas.</p>
 
     <h2>Índice de priorización</h2>
+    <p>Cada ANP recibe un puntaje de 0 a 100 que combina tres criterios normalizados a [0,1]:</p>
+    <table>
+      <tr><th>Criterio</th><th>Variable</th><th>Normalización</th></tr>
+      <tr><td>Presión social</td><td>IM promedio de municipios que toca la ANP</td><td>min–max sobre las ANP con dato (mayor marginación → mayor prioridad)</td></tr>
+      <tr><td>Superficie</td><td>Hectáreas decretadas</td><td>min–max sobre log₁₀(superficie), para que las ANP gigantes no dominen</td></tr>
+      <tr><td>Presencia territorial</td><td>Número de municipios que intersecta</td><td>proporción respecto al máximo observado</td></tr>
+    </table>
+    <div class="formula">score = 100 × (w₁·c₁ + w₂·c₂ + w₃·c₃) / (w₁ + w₂ + w₃)</div>
+    <p>Los pesos w₁, w₂, w₃ (0–100) se ajustan con los controles del panel y los valores por defecto (50/30/20) son <strong>ilustrativos</strong>. <strong>Regla para ANP sin cruce socioeconómico</strong> (marinas o sin municipio identificable): el criterio de presión social puntúa 0 — el denominador no se renormaliza, para no premiar la falta de datos. Esta regla se adoptó tras detectar en validación que la renormalización colocaba ANP oceánicas por encima de toda ANP terrestre de alta marginación.</p>
+
+    <h2>Limitaciones</h2>
+    <div class="aviso">Pesos ilustrativos y ajustables, no calibrados con expertos · capa demo 2020 (182 ANP) frente a la cifra vigente de 232 · marginación 2010 en el demo (2020 en el pipeline) · cruce por nombre aproximado · geometrías simplificadas (los bordes no son aptos para análisis de precisión) · una sola dimensión socioeconómica · datos a fecha de corte, no en tiempo real.</div>
+    <p style="color:var(--gris); font-size:12px;">Bitácora completa de decisiones, validaciones y correcciones en <code>BITACORA.md</code> del repositorio. Desarrollado por Joel Bravo · junio 2026.</p>
+  </div>
+</section>
+
+<div id="contenedor">
+  <aside id="panel">
+    <div class="kicker">Herramientas SIG</div>
+    <div class="subkicker">FMCN Conservación</div>
+
+    <div class="seccion">◈ Capas</div>
+    <label class="capa"><span id="lbl-anp">Áreas Naturales Protegidas</span><input type="checkbox" id="capa-anp" checked></label>
+    <label class="capa"><span>Marginación municipal</span><input type="checkbox" id="capa-marg"></label>
+
+    <div class="seccion">▽ Filtros</div>
+    <div class="campo">Categoría de manejo</div>
+    <select id="filtro-categoria"><option value="">Todas las categorías</option></select>
+    <div class="campo">Estado</div>
+    <select id="filtro-estado"><option value="">Todos los estados</option></select>
+
+    <div class="seccion">▦ Índice de priorización</div>
     <div class="slider-grupo">
-      <div class="fila"><span>Presión socioeconómica (marginación)</span><span class="peso" id="v-w1">50</span></div>
+      <div class="fila"><span>Presión social (marginación)</span><span class="val" id="v-w1">50</span></div>
       <input type="range" id="w1" min="0" max="100" value="50">
     </div>
     <div class="slider-grupo">
-      <div class="fila"><span>Superficie del ANP</span><span class="peso" id="v-w2">30</span></div>
+      <div class="fila"><span>Superficie</span><span class="val" id="v-w2">30</span></div>
       <input type="range" id="w2" min="0" max="100" value="30">
     </div>
     <div class="slider-grupo">
-      <div class="fila"><span>Presencia territorial (municipios)</span><span class="peso" id="v-w3">20</span></div>
+      <div class="fila"><span>Presencia territorial</span><span class="val" id="v-w3">20</span></div>
       <input type="range" id="w3" min="0" max="100" value="20">
     </div>
+    <div class="pesos-nota">Pesos ilustrativos y ajustables: la herramienta soporta la decisión, no la sustituye. Las ANP sin cruce socioeconómico (marinas) no puntúan en ese pilar.</div>
 
-    <h2>Top 10 ANP prioritarias</h2>
-    <table id="tabla-top">
-      <thead><tr><th>#</th><th>ANP</th><th>Score</th></tr></thead>
-      <tbody></tbody>
-    </table>
-
-    <div class="nota"><strong>Nota:</strong> pesos ilustrativos y ajustables; la herramienta soporta la decisión, no la sustituye. Las ANP sin municipio asociado (marinas) no tienen presión socioeconómica terrestre medible: ese criterio cuenta como 0. Si baja su peso, esas ANP suben en el ranking.</div>
+    <button class="btn-exportar" id="btn-exportar">⭳ Exportar Datos</button>
     <div id="diag"></div>
   </aside>
+
   <div id="mapa">
     <div id="estado-carga">Cargando capas oficiales…</div>
-    <div class="leyenda">
-      <strong>Índice de priorización</strong>
+    <div class="tarjeta" id="tarjeta-top">
+      <div class="cabeza">☆ Top 10 ANP prioritarias</div>
+      <table><tbody id="cuerpo-top"></tbody></table>
+    </div>
+    <div class="tarjeta" id="tarjeta-leyenda">
+      <div class="titulo">Puntaje de Prioridad</div>
       <div class="barra"></div>
-      <div class="ext"><span>0</span><span>100</span></div>
+      <div class="ext"><span>BAJO</span><span>MEDIO</span><span>ALTO</span></div>
     </div>
   </div>
 </div>
+
 <footer>
   Fuentes: <a href="https://sig.conanp.gob.mx/" target="_blank">CONANP</a> — ANP federales (capa de servicio 2020; cifra oficial vigente: 232 ANP, <a href="https://simec.conanp.gob.mx/numeralia/Tablas_Numeralia.pdf" target="_blank">Numeralia SIMEC</a>) ·
   <a href="https://www.gob.mx/conapo" target="_blank">CONAPO</a> — Índice de marginación municipal ·
@@ -115,15 +234,11 @@ const CATEGORIAS = {
   "RB":"Reserva de la Biosfera","PN":"Parque Nacional","APFF":"Área de Protección de Flora y Fauna",
   "APRN":"Área de Protección de Recursos Naturales","MN":"Monumento Natural","SANT":"Santuario","S":"Santuario"
 };
-const GRADOS = {"Muy bajo":1,"Bajo":2,"Medio":3,"Alto":4,"Muy alto":5};
 
 /* ================= Utilidades ================= */
-// Normaliza nombres: minúsculas, sin acentos, solo a-z (tolera errores de codificación del servicio, p.ej. "Villa de -lvarez")
 const norm = s => (s||"").toLowerCase().normalize("NFD").replace(new RegExp("[\\u0300-\\u036f]","g"),"").replace(/[^a-z]/g,"");
-// Canonicaliza nombres de estado. CONAPO usa nombres largos oficiales ("Coahuila de
-// Zaragoza", "Distrito Federal", "Michoacán de Ocampo", "México", "Querétaro de Arteaga")
-// que no coinciden con el campo ESTADOS de las ANP ("Coahuila", "Ciudad de México",
-// "Michoacán", "Estado de México", "Querétaro") tras normalizar. Mapea ambos lados a un token común.
+// Canonicaliza estados: CONAPO usa nombres largos oficiales ("Coahuila de Zaragoza",
+// "Michoacán de Ocampo") que no coinciden con el campo ESTADOS de las ANP.
 const ALIAS_EDO = {
   coahuila:"coah", coahuiladezaragoza:"coah",
   ciudaddemexico:"cdmx", distritofederal:"cdmx", cdmx:"cdmx", df:"cdmx",
@@ -135,13 +250,12 @@ const ALIAS_EDO = {
   sanluispotosi:"slp", slp:"slp"
 };
 const normEdo = s => { const k = norm(s); return ALIAS_EDO[k] || k; };
-// Lista de municipios: separadores ",", " y " y " e " (Spanish: "Lázaro Cárdenas e Isla Mujeres")
+// Separadores de municipios: ",", " y " y " e " ("Lázaro Cárdenas e Isla Mujeres")
 const splitMunis = s => (s||"").split(/,| y | e /).map(x=>x.trim()).filter(Boolean);
 const fmt = n => n==null ? "s/d" : n.toLocaleString("es-MX",{maximumFractionDigits:0});
 
 async function fetchJSON(url){ const r = await fetch(url); if(!r.ok) throw new Error("HTTP "+r.status+" — "+url); return r.json(); }
 
-// Carga paginada de un layer ArcGIS REST
 async function cargarPaginado(base, params, formato, tamPagina){
   let offset = 0, out = [];
   for(let i=0;i<60;i++){
@@ -150,7 +264,6 @@ async function cargarPaginado(base, params, formato, tamPagina){
     const feats = j.features || [];
     out = out.concat(feats);
     const flag = j.exceededTransferLimit || (j.properties && j.properties.exceededTransferLimit);
-    // Continuar si el servicio lo indica O si la página vino llena (algunas versiones omiten el flag en f=geojson)
     if(!feats.length || (!flag && feats.length < tamPagina)) break;
     offset += feats.length;
   }
@@ -159,12 +272,11 @@ async function cargarPaginado(base, params, formato, tamPagina){
 
 /* ================= Carga de datos ================= */
 const estadoCarga = document.getElementById("estado-carga");
-let ANP = null;            // GeoJSON FeatureCollection
-let margPorANP = {};       // id -> {im, grado, n, matched}
+let ANP = null;
+let margPorANP = {};
 let diag = {munis:0, anps:0, conMarg:0};
 
 async function cargarDatos(){
-  // 1) Intentar copias locales (generadas por scripts/snapshot_servicios.py); 2) servicio en vivo
   let anpGeo, munis;
   try{
     anpGeo = await fetchJSON("data/anp.geojson");
@@ -181,14 +293,13 @@ async function cargarDatos(){
   }
   diag.munis = munis.length;
   diag.anps = anpGeo.features.length;
+  document.getElementById("lbl-anp").textContent = `Áreas Naturales Protegidas (${diag.anps})`;
 
-  // Índice (estado, municipio) -> IM
   const idx = {};
   munis.forEach(m=>{ idx[normEdo(m.NOM_ENT)+"|"+norm(m.NOM_MUN)] = m; });
   const porEstado = {};
   munis.forEach(m=>{ (porEstado[normEdo(m.NOM_ENT)] = porEstado[normEdo(m.NOM_ENT)]||[]).push(m); });
 
-  // Cruce por nombre: "Estado: Mun1, Mun2 y Mun3; Estado2: …"
   anpGeo.features.forEach((f,i)=>{
     f.id = i;
     const p = f.properties;
@@ -209,7 +320,6 @@ async function cargarDatos(){
       });
       if(res.n>0) res.im = suma/res.n;
     } else if(txt){
-      // ANP en un solo estado: "Mun1, Mun2 y Mun3"
       const edoN = normEdo(p.ESTADOS);
       let suma=0;
       splitMunis(txt).forEach(mun=>{
@@ -228,14 +338,16 @@ async function cargarDatos(){
   });
   ANP = anpGeo;
   document.getElementById("diag").textContent =
-    `Diagnóstico: ${diag.anps} ANP cargadas · ${diag.munis} municipios CONAPO · cruce socioeconómico resuelto en ${diag.conMarg} ANP (las restantes son marinas o sin municipio identificable).`;
+    `${diag.anps} ANP · ${diag.munis} municipios CONAPO · cruce socioeconómico en ${diag.conMarg} ANP (las restantes son marinas o sin municipio identificable).`;
 }
 
-/* ================= Índice de priorización ================= */
+/* ================= Índice de priorización =================
+   ANP sin cruce socioeconómico: el pilar faltante puntúa 0 (no se
+   renormaliza el denominador) para no premiar la falta de datos. */
+let ultimoRanking = [];
 function calcularScores(){
   if(!ANP) return [];
   const feats = ANP.features;
-  // Normalización 0–1 por criterio
   const ims = feats.map(f=>margPorANP[f.id].im).filter(v=>v!=null);
   const imMin = Math.min(...ims), imMax = Math.max(...ims);
   const sups = feats.map(f=>Math.log10((f.properties.SUPERFICIE||1)+1));
@@ -246,41 +358,33 @@ function calcularScores(){
   const w1=+document.getElementById("w1").value,
         w2=+document.getElementById("w2").value,
         w3=+document.getElementById("w3").value;
+  const den = w1+w2+w3;
 
   const filas=[];
   feats.forEach((f,k)=>{
     const m = margPorANP[f.id];
-    const c1 = m.im!=null ? (m.im-imMin)/((imMax-imMin)||1) : null;       // marginación: mayor = más presión
-    const c2 = (sups[k]-sMin)/((sMax-sMin)||1);                            // superficie (log)
-    const c3 = (f.properties._nMunis||0)/nMax;                             // presencia territorial
-    // Sin cruce socioeconómico (ANP marina/sin municipio): el pilar de marginación
-    // aporta 0 pero conserva su peso en el denominador, para no inflar a las marinas
-    // por renormalización. Si el usuario baja el peso de marginación, suben solas.
-    let num=0, den=0;
-    num+=w1*(c1!=null?c1:0); den+=w1;
-    num+=w2*c2; den+=w2;
-    num+=w3*c3; den+=w3;
-    const score = den>0 ? Math.round(100*num/den) : 0;
+    const c1 = m.im!=null ? (m.im-imMin)/((imMax-imMin)||1) : 0;   // pilar faltante = 0
+    const c2 = (sups[k]-sMin)/((sMax-sMin)||1);
+    const c3 = (f.properties._nMunis||0)/nMax;
+    const score = den>0 ? Math.round(100*(w1*c1+w2*c2+w3*c3)/den) : 0;
     f.properties._score = score;
-    filas.push({id:f.id, nombre:f.properties.NOMBRE, score, f});
+    filas.push({id:f.id, nombre:f.properties.NOMBRE, score, sinDato:m.im==null, f});
   });
-  return filas.sort((a,b)=>b.score-a.score);
+  ultimoRanking = filas.sort((a,b)=>b.score-a.score);
+  return ultimoRanking;
 }
 
-const colorScore = s => s>=66 ? "#bd0026" : s>=50 ? "#f03b20" : s>=33 ? "#fd8d3c" : s>=16 ? "#fecc5c" : "#ffffb2";
+const colorScore = s => s>=66 ? "#bd0026" : s>=50 ? "#f03b20" : s>=33 ? "#fd8d3c" : s>=16 ? "#fecc5c" : "#d4b106";
 
 function actualizarIndice(){
   ["w1","w2","w3"].forEach(w=>document.getElementById("v-"+w).textContent=document.getElementById(w).value);
   const filas = calcularScores();
-  // Recolorear vía feature-state
   filas.forEach(r=> map.setFeatureState({source:"anp", id:r.id},{score:r.score}));
-  // Tabla Top 10
-  const tb = document.querySelector("#tabla-top tbody");
+  const tb = document.getElementById("cuerpo-top");
   tb.innerHTML="";
   filas.slice(0,10).forEach((r,i)=>{
     const tr=document.createElement("tr");
-    tr.className="fila-anp";
-    tr.innerHTML=`<td>${i+1}</td><td>${r.nombre}</td><td><span class="score-chip" style="background:${colorScore(r.score)}">${r.score}</span></td>`;
+    tr.innerHTML=`<td class="num">${String(i+1).padStart(2,"0")}</td><td class="nom" title="${r.nombre}">${r.nombre}</td><td><span class="chip" style="background:${colorScore(r.score)}">${r.score}</span></td>`;
     tr.onclick=()=>{ const bb=bboxDe(r.f); if(bb) map.fitBounds(bb,{padding:60, maxZoom:9}); };
     tb.appendChild(tr);
   });
@@ -292,6 +396,26 @@ function bboxDe(f){
   if(f.geometry) rec(f.geometry.coordinates);
   return ok ? [[minX,minY],[maxX,maxY]] : null;
 }
+
+/* ================= Exportar CSV ================= */
+document.getElementById("btn-exportar").onclick = ()=>{
+  if(!ultimoRanking.length) return;
+  const w1=document.getElementById("w1").value, w2=document.getElementById("w2").value, w3=document.getElementById("w3").value;
+  const esc = s => '"'+String(s==null?"":s).replace(/"/g,'""')+'"';
+  let csv = "﻿ranking,anp,categoria,estados,superficie_ha,marginacion_promedio_IM,municipios,score\r\n";
+  ultimoRanking.forEach((r,i)=>{
+    const p=r.f.properties, m=margPorANP[r.id];
+    csv += [i+1, esc(p.NOMBRE), esc(CATEGORIAS[p.CAT_MANEJO]||p.CAT_MANEJO), esc(p.ESTADOS),
+            p.SUPERFICIE!=null?Math.round(p.SUPERFICIE):"", m.im!=null?m.im.toFixed(3):"s/d",
+            p._nMunis||0, r.score].join(",")+"\r\n";
+  });
+  csv += `\r\n"Pesos: presión social=${w1}, superficie=${w2}, presencia territorial=${w3}. Pesos ilustrativos. Fuentes: CONANP, CONAPO. ${new Date().toISOString().slice(0,10)}"\r\n`;
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+  a.download="ranking_anp_fmcn.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
 
 /* ================= Mapa ================= */
 const map = new maplibregl.Map({
@@ -313,10 +437,9 @@ map.on("load", async ()=>{
     await cargarDatos();
   }catch(e){
     estadoCarga.classList.add("error");
-    estadoCarga.textContent = "No fue posible cargar los servicios de datos. Ejecuta scripts/snapshot_servicios.py para generar copias locales. ("+e.message+")";
+    estadoCarga.textContent = "No fue posible cargar los servicios de datos. Ejecuta scripts/snapshot_servicios.py. ("+e.message+")";
     return;
   }
-  // Capa raster de marginación (export dinámico del MapServer)
   map.addSource("marg",{type:"raster", tiles:[SRV_MARG_EXPORT+"?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&dpi=96&format=png32&transparent=true&layers=show:5&f=image"], tileSize:256});
   map.addLayer({id:"marg", type:"raster", source:"marg", paint:{"raster-opacity":0.55}, layout:{visibility:"none"}});
 
@@ -326,9 +449,8 @@ map.on("load", async ()=>{
       ["interpolate",["linear"],["feature-state","score"],0,"#ffffb2",25,"#fecc5c",50,"#fd8d3c",75,"#f03b20",100,"#bd0026"],
       "#74a374"],
       "fill-opacity":0.62}});
-  map.addLayer({id:"anp-line", type:"line", source:"anp", paint:{"line-color":"#1b5e20","line-width":0.8}});
+  map.addLayer({id:"anp-line", type:"line", source:"anp", paint:{"line-color":"#0a5a50","line-width":0.9}});
 
-  // Popup
   map.on("click","anp-fill",e=>{
     const f=e.features[0], p=f.properties, m=margPorANP[f.id]||{};
     const anio = p.PRIM_DEC ? new Date(+p.PRIM_DEC).getFullYear() : null;
@@ -360,24 +482,23 @@ function construirFiltros(){
     cats[f.properties.CAT_MANEJO]=(cats[f.properties.CAT_MANEJO]||0)+1;
     (f.properties.ESTADOS||"").split(/,| y /).map(s=>s.trim()).filter(s=>s&&s.length>2).forEach(e=>edos.add(e));
   });
-  const cont=document.getElementById("filtro-categorias");
+  const selC=document.getElementById("filtro-categoria");
   Object.keys(cats).sort().forEach(c=>{
-    const l=document.createElement("label");
-    l.innerHTML=`<input type="checkbox" class="f-cat" value="${c}" checked> ${CATEGORIAS[c]||c} (${cats[c]})`;
-    cont.appendChild(l);
+    const o=document.createElement("option"); o.value=c; o.textContent=`${CATEGORIAS[c]||c} (${cats[c]})`; selC.appendChild(o);
   });
-  const sel=document.getElementById("filtro-estado");
+  const selE=document.getElementById("filtro-estado");
   [...edos].sort((a,b)=>a.localeCompare(b,"es")).forEach(e=>{
-    const o=document.createElement("option"); o.value=e; o.textContent=e; sel.appendChild(o);
+    const o=document.createElement("option"); o.value=e; o.textContent=e; selE.appendChild(o);
   });
-  document.querySelectorAll(".f-cat").forEach(ch=>ch.onchange=aplicarFiltros);
-  sel.onchange=aplicarFiltros;
+  selC.onchange=aplicarFiltros;
+  selE.onchange=aplicarFiltros;
 }
 
 function aplicarFiltros(){
-  const activas=[...document.querySelectorAll(".f-cat:checked")].map(c=>c.value);
+  const cat=document.getElementById("filtro-categoria").value;
   const edo=document.getElementById("filtro-estado").value;
-  const filtro=["all",["in",["get","CAT_MANEJO"],["literal",activas]]];
+  const filtro=["all"];
+  if(cat) filtro.push(["==",["get","CAT_MANEJO"],cat]);
   if(edo) filtro.push(["in",edo,["get","ESTADOS"]]);
   map.setFilter("anp-fill",filtro);
   map.setFilter("anp-line",filtro);
@@ -391,6 +512,16 @@ document.getElementById("capa-marg").onchange=e=>{
   if(map.getLayer("marg")) map.setLayoutProperty("marg","visibility",e.target.checked?"visible":"none");
 };
 ["w1","w2","w3"].forEach(w=>document.getElementById(w).oninput=actualizarIndice);
+
+/* ================= Pestañas ================= */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("activa"));
+  t.classList.add("activa");
+  const verMapa = t.dataset.vista==="mapa-v";
+  document.getElementById("contenedor").style.display = verMapa ? "flex" : "none";
+  document.getElementById("metodologia-v").style.display = verMapa ? "none" : "block";
+  if(verMapa) map.resize();
+});
 </script>
 </body>
 </html>
