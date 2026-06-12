@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plataforma Territorial FMCN</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230e7569' stroke-width='2.2'%3E%3Cpath d='M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.6'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
 <style>
@@ -93,7 +94,8 @@
   .tarjeta{position:absolute; background:var(--blanco); border-radius:var(--radio); box-shadow:var(--sombra); z-index:5;}
   #tarjeta-top{bottom:18px; right:14px; width:250px; overflow:hidden;}
   #tarjeta-top .cabeza{background:var(--teal-claro); color:var(--teal-osc); font-size:12.5px; font-weight:700; padding:9px 12px; display:flex; align-items:center; gap:6px;}
-  #tarjeta-top table{width:100%; border-collapse:collapse; font-size:12px;}
+  #tarjeta-top table{width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed;}
+  #tarjeta-top td.num{width:30px;} #tarjeta-top td:last-child{width:54px;}
   #tarjeta-top td{padding:6px 12px; border-bottom:1px solid #f3f4f6;}
   #tarjeta-top tr:last-child td{border-bottom:none;}
   #tarjeta-top tr{cursor:pointer;}
@@ -120,6 +122,8 @@
     #contenedor{flex-direction:column;}
     #panel{width:100%; max-height:46%; min-width:0;}
     #tarjeta-top{width:210px;}
+    header .derecha{display:none;}
+    header .tabs{margin-left:auto;}
   }
 </style>
 </head>

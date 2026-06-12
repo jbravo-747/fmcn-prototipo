@@ -42,6 +42,9 @@ def main():
         "where": "1=1",
         "outFields": "ID_ANP,NOMBRE,CAT_MANEJO,ESTADOS,MUNICIPIOS,REGION,SUPERFICIE,S_TERRES,S_MARINA,PRIM_DEC",
         "returnGeometry": "true", "outSR": "4326",
+        # OJO: este servidor IGNORA maxAllowableOffset con f=geojson (verificado:
+        # misma respuesta byte a byte con 0.005, 0.05 y 0.2). La simplificación
+        # real se hace localmente con mapshaper; ver instrucción al final.
         "geometryPrecision": "4", "maxAllowableOffset": "0.005",
         "resultRecordCount": "50",
     }, "geojson", 50)
@@ -61,6 +64,9 @@ def main():
     print(f"  {len(attrs)} municipios -> web/data/marginacion_municipal.json (esperado: ~2456 en 2010)")
 
     print("Listo. La app usará estas copias locales automáticamente.")
+    print("\nPaso final (reduce anp.geojson ~9.3 MB -> ~4.2 MB; requiere Node):")
+    print("  npx -y mapshaper web/data/anp.geojson -simplify visvalingam keep-shapes 60% \\")
+    print("     -o precision=0.0001 force web/data/anp.geojson")
 
 
 if __name__ == "__main__":
