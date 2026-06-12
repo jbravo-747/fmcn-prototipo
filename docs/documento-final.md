@@ -1,7 +1,7 @@
 # Priorización territorial de ANP federales — Prototipo para FMCN
 
-**Enlace al prototipo:** _(pendiente de deploy — ver docs/despliegue.md; mientras tanto: `cd web && python -m http.server 8000`)_
-**Candidato:** Joel Bravo — Oficial de Innovación Tecnológica · **Fecha:** 11 de junio de 2026
+**Enlace al prototipo:** https://fmcn-prototipo.vercel.app
+**Candidato:** Joel Bravo — Oficial de Innovación Tecnológica · **Fecha:** 12 de junio de 2026
 
 ---
 
@@ -21,7 +21,7 @@ El FMCN invierte en conservación a lo largo de todo el territorio nacional y de
 
 **Aporte de análisis.** No es solo un mapa con puntos: incluye un **índice de priorización 0–100** por ANP que combina tres criterios normalizados —presión socioeconómica (marginación promedio), superficie (escala logarítmica) y presencia territorial (municipios que intersecta)— con **pesos ajustables en vivo** mediante sliders, y una tabla "Top 10" que se reordena al instante. Los pesos son ilustrativos: la herramienta soporta la decisión, no la sustituye.
 
-**De prototipo a sistema institucional.** Fase 1 (actual): hosting estático en Cloudflare Pages, ~$0–50 USD/mes. Fase 2, si crecen capas y usuarios: PostGIS + tileserver en un VPS (~$80–150 USD/mes), autenticación y roles. La actualización semestral de capas reutiliza el pipeline existente (~4 h por ciclo). Operación: un perfil técnico medio a tiempo parcial con soporte puntual de consultoría. El presupuesto de $300,000 MXN alcanza holgado: el grueso va a **capacitación** (~$80–120k), consultoría de endurecimiento (~$100k) y contingencia.
+**De prototipo a sistema institucional.** Fase 1 (actual): hosting estático en Vercel — desplegado, con repo privado y deploy automático por Git — ~$0–50 USD/mes. Fase 2, si crecen capas y usuarios: PostGIS + tileserver en un VPS (~$80–150 USD/mes), autenticación y roles. La actualización semestral de capas reutiliza el pipeline existente (~4 h por ciclo). Operación: un perfil técnico medio a tiempo parcial con soporte puntual de consultoría. El presupuesto de $300,000 MXN alcanza holgado: el grueso va a **capacitación** (~$80–120k), consultoría de endurecimiento (~$100k) y contingencia.
 
 **Adopción.** Dos talleres (técnico y no técnico), manual de una página, "champions" por área y sesión de retroalimentación al mes 3.
 
@@ -37,7 +37,7 @@ El FMCN invierte en conservación a lo largo de todo el territorio nacional y de
 
 ## Parte 5 — Bitácora de uso de IA
 
-**Herramientas:** Claude (Cowork desktop) como asistente principal de análisis, código y redacción; Python 3 + geopandas (pipeline); MapLibre GL JS 4.7 (visor); Cloudflare Pages (hosting). Registro completo en `BITACORA.md`.
+**Herramientas:** Claude (Cowork desktop) como asistente principal de análisis, código y redacción; Python 3 + geopandas (pipeline); MapLibre GL JS 4.7 (visor); Vercel (hosting). Registro completo en `BITACORA.md`.
 
 **Validaciones y correcciones (selección):**
 

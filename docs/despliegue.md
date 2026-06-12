@@ -1,5 +1,16 @@
 # Despliegue
 
+## Estado actual (12-jun-2026): DESPLEGADO en Vercel
+
+**URL pública: https://fmcn-prototipo.vercel.app** — repo privado, deploy automático en cada push a `main`.
+
+- Proyecto Vercel: `joel-bravos-projects/fmcn-prototipo`, conectado al repo de GitHub.
+- `vercel.json` en la raíz define `"outputDirectory": "web"` para servir la app en la raíz del dominio.
+- Las URLs de preview (por commit) piden login de Vercel; la URL de producción es pública.
+- Verificado en producción con el harness headless: 12/12 pruebas (carga 182 ANP, popup, sliders, Top 10, export CSV, responsive, consola limpia).
+
+Los planes A (Cloudflare Pages) y B (GitHub Pages) de abajo quedan como alternativas documentadas; no se usaron.
+
 ## Prueba local
 
 ```
