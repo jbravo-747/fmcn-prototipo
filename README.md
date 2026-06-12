@@ -2,6 +2,8 @@
 
 Visor web de Áreas Naturales Protegidas federales (CONANP) cruzadas con el índice de marginación municipal (CONAPO 2020), con un índice de priorización 0–100 de pesos ajustables.
 
+**Demo en vivo:** https://fmcn-prototipo.vercel.app
+
 ## Estructura
 
 ```
@@ -24,7 +26,7 @@ python -m http.server 8000
 
 ## Deploy
 
-Cloudflare Pages (directorio `web/`) o GitHub Pages. Sin build step.
+Vercel con integración Git: cada push a `main` redespliega https://fmcn-prototipo.vercel.app (`vercel.json` sirve `web/` como raíz; sin build step). Detalle y alternativas en `docs/despliegue.md`.
 
 ## Fuentes
 
