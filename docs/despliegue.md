@@ -16,6 +16,10 @@ pip install requests
 python scripts/snapshot_servicios.py
 ```
 
+## Repositorio git (esta sesión)
+
+El repo se inicializó con `git init --separate-git-dir=~/fmcn-prototipo.git` porque la carpeta vive en un mount de OneDrive (DrvFs) que no permite `chmod`. La metadata git queda en `~/fmcn-prototipo.git` (ext4) y `web/.git` es un archivo que apunta ahí. **Empujar a GitHub desde WSL** (`git remote add origin … && git push -u origin main`); desde Git para Windows esa ruta de gitdir no resuelve. `data/raw/` (descargas pesadas) está en `.gitignore`; `web/data/` sí se versiona porque la app lo consume.
+
 ## Cloudflare Pages (plan A)
 
 1. Subir el repo a GitHub (privado está bien).
