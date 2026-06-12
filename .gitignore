@@ -1,0 +1,14 @@
+# Descargas originales pesadas (reproducibles desde las URLs en docs/fuentes.md)
+data/raw/*
+!data/raw/.gitkeep
+
+# Salidas generadas por el pipeline (se regeneran con scripts/pipeline.py)
+data/processed/
+
+# web/data/ SÍ se versiona: la app estática lo consume en el deploy.
+
+# Python / sistema
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
