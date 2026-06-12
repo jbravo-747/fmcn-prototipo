@@ -59,9 +59,9 @@ Verificar ≤4 páginas. Tomar screenshots del prototipo para documento/presenta
 Ensayar el guion (`docs/guion-presentacion.md`) con cronómetro al menos una vez; tener screenshots de respaldo por si falla internet en la demo.
 
 ### 6. Seguridad (no saltarse)
-- **Revocar el token de GitHub expuesto** la noche del 11-jun: GitHub → Settings → Developer settings → Fine-grained tokens.
+- ~~**Revocar el token de GitHub expuesto** la noche del 11-jun~~ — **HECHO 12-jun-2026** (revocado por el usuario en GitHub → Developer settings → Fine-grained tokens).
 - En el equipo Windows quedó `gh` con "credentials saved in plain text" — opcional: `gh auth logout` allí si ya no se usará.
-- Si se optó por repo público, revisar que no haya nada sensible (no lo hay a la fecha de este handoff, pero revisar commits futuros).
+- ~~Si se optó por repo público...~~ — N/A: se desplegó vía Vercel y el repo sigue **privado**.
 
 ## Prompt listo para Claude Code en Ubuntu
 
